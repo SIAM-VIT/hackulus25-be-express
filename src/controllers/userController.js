@@ -14,6 +14,20 @@ import db from "../utils/db.js";
 
 const redis = new Redis(process.env.REDIS_URL);
 
+const checkTeamStatus = async (user) => {
+  if (user && user.team_id) {
+    const teamRes = await db.query(
+      "SELECT status FROM teams WHERE team_id = $1",
+      [user.team_id]
+    );
+    if (teamRes.rows[0]?.status === "rejected") {
+      throw new Error(
+        "Your team has been eliminated and cannot perform this action."
+      );
+    }
+  }
+};
+
 const uploadDir = process.env.UPLOAD_DIR || "uploads";
 const uploadsPath = path.join(process.cwd(), uploadDir);
 if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
@@ -52,6 +66,7 @@ const submissionBodySchema = Joi.object({
 export const getUsersHome = async (req, res) => {
   try {
     const user = req.currentUser;
+    await checkTeamStatus(user);
     if (!user) return res.status(401).json({ error: "Unauthenticated" });
     const cacheKey = `user_home:${user.user_id}`;
 
@@ -102,6 +117,9 @@ export const getUsersHome = async (req, res) => {
     res.json(responseData);
   } catch (err) {
     console.error("getUsersHome err", err);
+    if (err.message.includes("eliminated")) {
+      return res.status(403).json({ message: err.message });
+    }
     res.status(500).json({ error: "server error" });
   }
 };
@@ -109,6 +127,7 @@ export const getUsersHome = async (req, res) => {
 export const listMySubmissions = async (req, res) => {
   try {
     const user = req.currentUser;
+    await checkTeamStatus(user);
     if (!user || !user.team_id) return res.json({ submissions: [] });
     const subs = await getSubmissionsByTeam(user.team_id);
 
@@ -123,6 +142,9 @@ export const listMySubmissions = async (req, res) => {
     res.json({ submissions: submissionsWithOriginalName });
   } catch (err) {
     console.error("listMySubmissions err", err);
+    if (err.message.includes("eliminated")) {
+      return res.status(403).json({ message: err.message });
+    }
     res.status(500).json({ error: "server error" });
   }
 };
@@ -132,6 +154,7 @@ export const submitReview = [
   async (req, res) => {
     try {
       const user = req.currentUser;
+      await checkTeamStatus(user);
       if (!user || !user.team_id)
         return res.status(400).json({ error: "User must belong to a team" });
       if (!user.is_leader)
@@ -167,6 +190,9 @@ export const submitReview = [
       res.status(201).json({ submission: created });
     } catch (err) {
       console.error("submitReview err", err);
+      if (err.message.includes("eliminated")) {
+        return res.status(403).json({ message: err.message });
+      }
       res.status(500).json({ error: "server error" });
     }
   },
@@ -177,6 +203,7 @@ export const submitFinal = [
   async (req, res) => {
     try {
       const user = req.currentUser;
+      await checkTeamStatus(user);
       if (!user || !user.team_id)
         return res.status(400).json({ error: "User must belong to a team" });
       if (!user.is_leader)
@@ -206,6 +233,9 @@ export const submitFinal = [
       res.status(201).json({ submission: created });
     } catch (err) {
       console.error("submitFinal err", err);
+      if (err.message.includes("eliminated")) {
+        return res.status(403).json({ message: err.message });
+      }
       res.status(500).json({ error: "server error" });
     }
   },
@@ -216,6 +246,7 @@ export const modifySubmission = [
   async (req, res) => {
     try {
       const user = req.currentUser;
+      await checkTeamStatus(user);
       const { id: submission_id } = req.params;
 
       if (!user || !user.team_id || !user.is_leader) {
@@ -247,6 +278,9 @@ export const modifySubmission = [
       res.status(200).json({ submission: updated });
     } catch (err) {
       console.error("modifySubmission err", err);
+      if (err.message.includes("eliminated")) {
+        return res.status(403).json({ message: err.message });
+      }
       res.status(500).json({ error: "Server error" });
     }
   },
@@ -255,6 +289,7 @@ export const modifySubmission = [
 export const updateTeamProblemStatement = async (req, res) => {
   try {
     const user = req.currentUser;
+    await checkTeamStatus(user);
     const { problem_statement } = req.body;
 
     if (!user || !user.team_id) {
@@ -282,6 +317,9 @@ export const updateTeamProblemStatement = async (req, res) => {
     });
   } catch (err) {
     console.error("updateTeamProblemStatement err", err);
+    if (err.message.includes("eliminated")) {
+      return res.status(403).json({ message: err.message });
+    }
     res
       .status(500)
       .json({ error: "Server error while updating problem statement." });

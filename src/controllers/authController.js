@@ -97,13 +97,7 @@ export async function adminLogin(req, res) {
     if (!matched)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = signToken({
-      id: admin.admin_id,
-      email: admin.email,
-      role: admin.role,
-      panel_id: admin.panel_id,
-    });
-    return res.json({ token, expiresIn: process.env.JWT_EXPIRES_IN });
+    return res.status(403).json({ message: "Hackathon has ended" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
@@ -198,16 +192,7 @@ export async function userLogin(req, res) {
       is_leader: user.is_leader,
     });
 
-    return res.json({
-      token,
-      expiresIn: process.env.JWT_EXPIRES_IN,
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        team_id: user.team_id,
-        is_leader: user.is_leader,
-      },
-    });
+    return res.status(403).json({ message: "Hackathon has ended" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
