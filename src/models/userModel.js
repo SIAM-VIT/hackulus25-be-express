@@ -1,4 +1,4 @@
-import {pool} from "../utils/db.js";
+import { pool } from "../utils/db.js";
 import Joi from "joi";
 
 // joi schemas
@@ -19,7 +19,7 @@ export const userSchema = Joi.object({
     .allow(null),
   is_leader: Joi.boolean().optional(),
   extra_info: Joi.any().optional().allow(null)
-}).unknown(true);  // ← THIS ALLOWS extra fields
+}).unknown(true);  // allow extra fields
 
 
 export async function findUserByEmail(email) {
@@ -39,10 +39,10 @@ export async function findUserById(user_id) {
 }
 
 export async function createUser({ name, email, password, team_name, track_id, is_leader = false, extra_info = null }) {
-const { error, value } = userSchema.validate(
-  { name, email, password, team_name, track_id, is_leader, extra_info },
-  { abortEarly: false }   // unknown keys are allowed already
-);  if (error) throw new Error(`Validation error: ${error.details.map(d => d.message).join(', ')}`);
+  const { error, value } = userSchema.validate(
+    { name, email, password, team_name, track_id, is_leader, extra_info },
+    { abortEarly: false }   // unknown keys are allowed already
+  ); if (error) throw new Error(`Validation error: ${error.details.map(d => d.message).join(', ')}`);
 
   // Check if team already exists
   const teamRes = await pool.query("SELECT team_id FROM teams WHERE team_name = $1", [team_name]);

@@ -10,27 +10,19 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Admin data and panel assignments remain the same
+// admin data and panel assignments remain the same
 const admins = [
-  { email: "rishab.nagwani2023@vitstudent.ac.in", roll: "23BAI0085" },
-  { email: "aryan.vinod2023@vitstudent.ac.in", roll: "23BIT0116" },
-  { email: "nainika.anish2023@vitstudent.ac.in", roll: "23BCT0047" },
-  { email: "simran.rawat2023@vitstudent.ac.in", roll: "23BAI0090" },
-  { email: "janakipillai.raghav2023@vitstudent.ac.in", roll: "23BCE0806" },
-  { email: "aaryan.shrivastav2023@vitstudent.ac.in", roll: "23BCE0927" },
-  { email: "hitakshi.sardana2023@vitstudent.ac.in", roll: "23BAI0145" },
-  { email: "suhani.singh2023@vitstudent.ac.in", roll: "23BEC0472" },
-  { email: "priyanshu.kumar2023@vitstudent.ac.in", roll: "23BME0265" },
-  { email: "saanvi.devendra2023@vitstudent.ac.in", roll: "23BDS0013" },
-  { email: "akriti.agarwal2023@vitstudent.ac.in", roll: "23BDS0038" },
-  { email: "ruhirohit.adke2023@vitstudent.ac.in", roll: "23MMI0004" },
+  { email: "x@vitstudent.ac.in", roll: "11AAA1111" },
+  { email: "y@vitstudent.ac.in", roll: "22BBB2222" },
+
+  // 12 total records
 ];
 
 const panelMap = {
-  "rishab.nagwani": 1,
-  "aryan.vinod": 2,
-  "aaryan.shrivastav": 3,
-  "nainika.anish": 4,
+  "A": 1,
+  "B": 2,
+  "C": 3,
+  "D": 4,
 };
 
 function formatName(email) {
@@ -43,15 +35,13 @@ function formatName(email) {
     .join(" ");
 }
 
-// ===================================================================
-// NEW FUNCTION TO SEED PANELS
-// ===================================================================
+// New function for panel seed
 async function seedPanels(client) {
-  console.log("⚠  Deleting existing panels...");
-  // TRUNCATE panels as well
+  console.log("Deleting existing panels...");
+  // truncate panels as well
   await client.query("TRUNCATE TABLE panels RESTART IDENTITY CASCADE");
 
-  console.log("⚡ Inserting new panels...");
+  console.log("Inserting new panels...");
   const tracksResult = await client.query(
     "SELECT track_id FROM tracks ORDER BY track_id"
   );
@@ -84,25 +74,24 @@ async function seedPanels(client) {
     trackIds[6],
   ]);
 
-  console.log("✅ Panels created and tracks assigned successfully!");
+  console.log("Panels created and tracks assigned successfully!");
 }
-// ===================================================================
 
 async function seedAdmins() {
   const client = await pool.connect();
 
   try {
-    // UPDATED: Start a transaction
+    // UPDATED- Start a transaction
     await client.query("BEGIN");
 
-    // STEP 1: Seed the panels first. This will throw an error if it fails.
+    // Seed the panels first. Will throw error if it fails
     await seedPanels(client);
 
-    // STEP 2: Proceed with seeding admins
-    console.log("⚠  Deleting existing admins...");
+    // Proceed with seeding admins
+    console.log("Deleting existing admins...");
     await client.query("TRUNCATE TABLE admins RESTART IDENTITY CASCADE");
 
-    console.log("⚡ Inserting new admins...");
+    console.log("Inserting new admins...");
     for (const admin of admins) {
       const email = admin.email;
       const roll = admin.roll;
@@ -119,17 +108,16 @@ async function seedAdmins() {
       );
 
       console.log(
-        `✅ Inserted: ${name} (${email}) → Panel: ${panel_id || "N/A"}`
+        `Inserted: ${name} (${email}) -> Panel: ${panel_id || "N/A"}`
       );
     }
 
-    // If all steps succeeded, commit the transaction
+    // If all steps succeed, commit  transaction
     await client.query("COMMIT");
-    console.log("🎉 Full seeding completed successfully!");
+    console.log("Full seeding completed successfully!");
   } catch (err) {
-    // If any step failed, roll back all changes
     await client.query("ROLLBACK");
-    console.error("❌ Error during seeding process:", err);
+    console.error("Error during seeding process:", err);
   } finally {
     client.release();
     pool.end();

@@ -1,4 +1,4 @@
-import {pool} from "../utils/db.js";
+import { pool } from "../utils/db.js";
 import Joi from "joi";
 
 // joi schemas

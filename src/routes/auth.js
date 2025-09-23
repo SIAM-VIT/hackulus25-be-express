@@ -50,8 +50,8 @@ router.post("/user/signup", async (req, res, next) => {
             .messages({
                 "string.pattern.base": "Password must be in the form ddLLLdddd (d-digit, L-capital letter)"
             }),
-    team_name: Joi.string().min(1).required(),        // mandatory team name
-    track_id: Joi.number().integer().required(),        is_leader: Joi.boolean().optional(),
+        team_name: Joi.string().min(1).required(),        // mandatory team name
+        track_id: Joi.number().integer().required(), is_leader: Joi.boolean().optional(),
         extra_info: Joi.any().optional()
     });
 
@@ -69,7 +69,7 @@ router.post("/user/login", async (req, res, next) => {
     });
 
     const { error } = schema.validate(req.body, { abortEarly: false, allowUnknown: true });
-    if (error) 
+    if (error)
         return res.status(400).json({ message: error.details.map(d => d.message).join(", ") });
 
     return userLogin(req, res, next);

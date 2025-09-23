@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const ts = Date.now();
     const safe = file.originalname.replace(/\s+/g, "_");
-    cb(null, `${ts}_${Math.random().toString(36).slice(2, 5)}_${safe}`); // Shortened hash to 5 chars
+    cb(null, `${ts}_${Math.random().toString(36).slice(2, 5)}_${safe}`); // hash changed to 5 chars
   },
 });
 const upload = multer({ storage });
@@ -62,20 +62,20 @@ export const getUsersHome = async (req, res) => {
 
     const teamRow = user.team_id
       ? (
-          await db.query(
-            "SELECT t.*, tr.name as track_name, tr.problem_statement FROM teams t LEFT JOIN tracks tr ON t.track_id=tr.track_id WHERE t.team_id=$1",
-            [user.team_id]
-          )
-        ).rows[0]
+        await db.query(
+          "SELECT t.*, tr.name as track_name, tr.problem_statement FROM teams t LEFT JOIN tracks tr ON t.track_id=tr.track_id WHERE t.team_id=$1",
+          [user.team_id]
+        )
+      ).rows[0]
       : null;
 
     const members = user.team_id
       ? (
-          await db.query(
-            "SELECT user_id, name, email, is_leader, extra_info FROM users WHERE team_id=$1 ORDER BY user_id",
-            [user.team_id]
-          )
-        ).rows
+        await db.query(
+          "SELECT user_id, name, email, is_leader, extra_info FROM users WHERE team_id=$1 ORDER BY user_id",
+          [user.team_id]
+        )
+      ).rows
       : [];
 
     const review1Window = await getWindowByName("review1");
