@@ -20,6 +20,7 @@
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+- [Running the Project Locally](#running=the-project-locally)
 - [Available Scripts](#available-scripts)
 - [Contributors](#contributors)
 - [License](#license)
